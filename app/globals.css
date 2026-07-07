@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b160f;
+  --background-soft: #0f2016;
+  --surface: #15281c;
+  --surface-hover: #1b3324;
+  --border: rgba(163, 209, 173, 0.14);
+  --border-strong: rgba(163, 209, 173, 0.28);
+  --foreground: #edf3ec;
+  --muted: #93ab9a;
+  --accent: #8fe08a;
+  --accent-strong: #6fce6a;
+  --accent-foreground: #0b160f;
+  --danger: #e08a8a;
+  --warning: #e0c98a;
+  --radius: 1rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-soft: var(--background-soft);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-fraunces);
+  --radius-lg: var(--radius);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background:
+    radial-gradient(60% 50% at 15% 0%, rgba(143, 224, 138, 0.10), transparent 60%),
+    radial-gradient(50% 40% at 100% 10%, rgba(143, 224, 138, 0.06), transparent 60%),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  min-height: 100dvh;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+* {
+  scrollbar-color: var(--border-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.font-display {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+.glass-panel {
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(6px);
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(143, 224, 138, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgba(143, 224, 138, 0);
+  }
+}
+
+.mic-pulse {
+  animation: pulse-ring 1.6s ease-out infinite;
+}
