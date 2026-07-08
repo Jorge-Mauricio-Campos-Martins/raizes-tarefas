@@ -12,7 +12,7 @@ import { ReviewModal } from "./ReviewModal";
 type Stage =
   | { name: "closed" }
   | { name: "capturing" }
-  | { name: "processing" }
+  | { name: "processing"; label: string }
   | { name: "reviewing"; tasks: ParsedTask[]; rawText: string; source: "voice" | "text" }
   | { name: "error"; message: string };
 
@@ -20,15 +20,33 @@ export function QuickCapture() {
   const [stage, setStage] = useState<Stage>({ name: "closed" });
   const queryClient = useQueryClient();
 
-  async function handleText(text: string, source: "voice" | "text") {
-    setStage({ name: "processing" });
+  async function handleText(text: string) {
+    setStage({ name: "processing", label: "Organizando suas tarefas..." });
     try {
-      const result = await api.capture(text, source);
-      setStage({ name: "reviewing", tasks: result.tasks, rawText: text, source });
+      const result = await api.capture(text, "text");
+      setStage({ name: "reviewing", tasks: result.tasks, rawText: text, source: "text" });
     } catch (err) {
       setStage({
         name: "error",
         message: err instanceof Error ? err.message : "Não foi possível organizar as tarefas.",
+      });
+    }
+  }
+
+  async function handleAudio(blob: Blob) {
+    setStage({ name: "processing", label: "Transcrevendo e organizando suas tarefas..." });
+    try {
+      const result = await api.captureAudio(blob);
+      setStage({
+        name: "reviewing",
+        tasks: result.tasks,
+        rawText: result.transcript,
+        source: "voice",
+      });
+    } catch (err) {
+      setStage({
+        name: "error",
+        message: err instanceof Error ? err.message : "Não foi possível transcrever o áudio.",
       });
     }
   }
@@ -75,7 +93,7 @@ export function QuickCapture() {
             {stage.name === "processing" && (
               <div className="flex flex-col items-center gap-3 py-10">
                 <Loader2 size={28} className="animate-spin text-accent" />
-                <p className="text-sm text-muted">Organizando suas tarefas...</p>
+                <p className="text-sm text-muted">{stage.label}</p>
               </div>
             )}
 
@@ -93,13 +111,13 @@ export function QuickCapture() {
 
             {stage.name === "capturing" && (
               <div className="space-y-4">
-                <VoiceRecorder onTranscriptReady={(text) => handleText(text, "voice")} />
+                <VoiceRecorder onRecorded={handleAudio} />
                 <div className="flex items-center gap-2 text-xs text-muted">
                   <div className="h-px flex-1 bg-border" />
                   ou
                   <div className="h-px flex-1 bg-border" />
                 </div>
-                <TextFallback onSubmit={(text) => handleText(text, "text")} />
+                <TextFallback onSubmit={handleText} />
               </div>
             )}
           </div>

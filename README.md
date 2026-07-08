@@ -7,7 +7,7 @@ App pessoal de tarefas: capture por voz ou texto no celular, a Gemini API organi
 - **Next.js** (App Router, TypeScript) — hospedado na **Vercel**
 - **Supabase** — Postgres (tarefas/projetos/anexos) + Storage (arquivos anexados)
 - **Gemini API** (Google AI Studio, camada gratuita) — organiza o texto capturado em tarefas estruturadas
-- **Web Speech API** do navegador — transcrição de voz gratuita (Chrome/Android; sem suporte no Safari/iOS, use o campo de texto nesse caso)
+- **Groq + Whisper** (camada gratuita) — transcrição de voz de alta qualidade a partir do áudio gravado (`MediaRecorder`, limite de 3 minutos por gravação)
 - **@dnd-kit** — drag-and-drop do Kanban, com bom suporte a toque no celular
 
 ## Configuração local
@@ -25,6 +25,7 @@ App pessoal de tarefas: capture por voz ou texto no celular, a Gemini API organi
    - `NEXT_PUBLIC_SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` — em Project Settings → API no Supabase (a service role key é secreta, nunca exponha).
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — mesma tela.
    - `GEMINI_API_KEY` — gere gratuitamente em [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey).
+   - `GROQ_API_KEY` — gere gratuitamente em [console.groq.com/keys](https://console.groq.com/keys).
    - `APP_PASSWORD` — a senha única que você vai usar para entrar no app.
    - `AUTH_SECRET` — gere com `openssl rand -base64 32` (ou qualquer string longa aleatória).
 
@@ -38,12 +39,13 @@ App pessoal de tarefas: capture por voz ou texto no celular, a Gemini API organi
 
 1. Suba este repositório para o GitHub.
 2. Em [vercel.com](https://vercel.com), importe o repositório (o framework Next.js é detectado automaticamente).
-3. Em Project Settings → Environment Variables, adicione as mesmas 6 variáveis do `.env.local`.
+3. Em Project Settings → Environment Variables, adicione as mesmas 7 variáveis do `.env.local`.
 4. Deploy. Acesse a URL gerada pelo celular, entre com a senha, e comece a capturar tarefas.
 
 ## Estrutura
 
-- `app/api/capture` — recebe o texto (voz ou digitado) e chama a Gemini API para extrair tarefas.
+- `app/api/capture` — recebe texto digitado e chama a Gemini API para extrair tarefas.
+- `app/api/capture/audio` — recebe o áudio gravado, transcreve via Groq/Whisper e reaproveita a mesma extração da Gemini.
 - `app/api/tasks`, `app/api/projects`, `app/api/attachments` — CRUD do quadro, sempre via service role key (o navegador nunca acessa o Supabase diretamente).
 - `components/kanban/` — o quadro arrastável.
 - `components/capture/` — botão flutuante, gravação de voz, fallback de texto e a tela de revisão antes de salvar.

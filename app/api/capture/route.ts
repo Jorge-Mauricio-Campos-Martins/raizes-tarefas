@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { supabaseAdmin } from "@/lib/supabase/server";
-import { extractTasks } from "@/lib/ai/extractTasks";
+import { runCapture } from "@/lib/ai/pipeline";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -16,39 +15,15 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const { text, source } = parsed.data;
 
-  const supabase = supabaseAdmin();
-  const { data: projects, error: projectsError } = await supabase
-    .from("projects")
-    .select("name")
-    .eq("is_archived", false);
-
-  if (projectsError) {
-    return NextResponse.json({ error: projectsError.message }, { status: 500 });
-  }
-
-  const projectNames = (projects ?? []).map((p) => p.name);
-
-  let result;
   try {
-    result = await extractTasks(text, projectNames);
+    const result = await runCapture(parsed.data.text, parsed.data.source);
+    return NextResponse.json(result);
   } catch (err) {
+    const status = (err as { status?: number }).status ?? 502;
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "AI extraction failed" },
-      { status: 502 },
+      { status },
     );
   }
-
-  const { data: session, error: sessionError } = await supabase
-    .from("capture_sessions")
-    .insert({ input_type: source, raw_text: text, claude_response: result })
-    .select("id")
-    .single();
-
-  if (sessionError) {
-    return NextResponse.json({ error: sessionError.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ tasks: result.tasks, capture_session_id: session.id });
 }

@@ -53,6 +53,20 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ text, source }),
     }),
+  captureAudio: async (blob: Blob) => {
+    const form = new FormData();
+    form.append("audio", blob, "capture.webm");
+    const res = await fetch("/api/capture/audio", { method: "POST", body: form });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? `Request failed: ${res.status}`);
+    }
+    return res.json() as Promise<{
+      tasks: ParsedTask[];
+      capture_session_id: string;
+      transcript: string;
+    }>;
+  },
   attachments: {
     list: (taskId: string) =>
       jsonFetch<{ attachments: import("@/types").Attachment[] }>(
