@@ -56,7 +56,12 @@ export const api = {
   captureAudio: async (blob: Blob) => {
     const form = new FormData();
     form.append("audio", blob, "capture.webm");
-    const res = await fetch("/api/capture/audio", { method: "POST", body: form });
+    let res: Response;
+    try {
+      res = await fetch("/api/capture/audio", { method: "POST", body: form });
+    } catch {
+      throw new Error("Falha de conexão ao enviar o áudio. Verifique sua internet e tente novamente.");
+    }
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       throw new Error(body.error ?? `Request failed: ${res.status}`);

@@ -20,11 +20,22 @@ export function QuickCapture() {
   const [stage, setStage] = useState<Stage>({ name: "closed" });
   const queryClient = useQueryClient();
 
+  function fallbackTask(text: string): ParsedTask {
+    return {
+      title: text.slice(0, 120),
+      description: text.length > 120 ? text : null,
+      due_date: null,
+      priority: "medium",
+      suggested_project: null,
+    };
+  }
+
   async function handleText(text: string) {
     setStage({ name: "processing", label: "Organizando suas tarefas..." });
     try {
       const result = await api.capture(text, "text");
-      setStage({ name: "reviewing", tasks: result.tasks, rawText: text, source: "text" });
+      const tasks = result.tasks.length > 0 ? result.tasks : [fallbackTask(text)];
+      setStage({ name: "reviewing", tasks, rawText: text, source: "text" });
     } catch (err) {
       setStage({
         name: "error",
@@ -37,9 +48,10 @@ export function QuickCapture() {
     setStage({ name: "processing", label: "Transcrevendo e organizando suas tarefas..." });
     try {
       const result = await api.captureAudio(blob);
+      const tasks = result.tasks.length > 0 ? result.tasks : [fallbackTask(result.transcript)];
       setStage({
         name: "reviewing",
-        tasks: result.tasks,
+        tasks,
         rawText: result.transcript,
         source: "voice",
       });

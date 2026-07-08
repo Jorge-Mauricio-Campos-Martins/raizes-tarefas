@@ -11,7 +11,7 @@ export const parsedTaskSchema = z.object({
 });
 
 export const extractTasksResultSchema = z.object({
-  tasks: z.array(parsedTaskSchema).min(1),
+  tasks: z.array(parsedTaskSchema),
 });
 
 export type ParsedTask = z.infer<typeof parsedTaskSchema>;
